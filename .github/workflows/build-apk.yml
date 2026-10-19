@@ -54,4 +54,4 @@ jobs:
         with:
           name: AL-HASHMI-APK
           path: project/**/build/outputs/apk/debug/*.apk
-          if-no-files-found: error
+          if-no-files-found: errori
