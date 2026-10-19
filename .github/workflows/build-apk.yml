@@ -1,0 +1,79 @@
+
+name: Build AL HASHMI APK
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'AL_HASHMI_ANDROID_STUDIO_PROJECT.zip'
+      - '.github/workflows/build-apk.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.9'
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v4
+        with:
+          accept-android-sdk-licenses: true
+          packages: platform-tools
+
+      - name: Extract project ZIP
+        run: |
+          test -f AL_HASHMI_ANDROID_STUDIO_PROJECT.zip
+          mkdir -p project
+          unzip -q AL_HASHMI_ANDROID_STUDIO_PROJECT.zip -d project
+
+      - name: Find project files
+        run: |
+          find project -maxdepth 6 \
+            \( -name settings.gradle -o -name settings.gradle.kts \) \
+            -print
+
+      - name: Build APK
+        run: |
+          PROJECT_FILE="$(find project -maxdepth 6 \
+            \( -name settings.gradle -o -name settings.gradle.kts \) \
+            -print -quit)"
+
+          if [ -z "$PROJECT_FILE" ]; then
+            echo "ERROR: Android project settings.gradle not found."
+            exit 1
+          fi
+
+          PROJECT_DIR="$(dirname "$PROJECT_FILE")"
+          echo "Building project in: $PROJECT_DIR"
+          cd "$PROJECT_DIR"
+
+          if [ -f gradlew ]; then
+            chmod +x gradlew
+            ./gradlew --no-daemon assembleDebug
+          else
+            gradle --no-daemon assembleDebug
+          fi
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: AL-HASHMI-APK
+          path: project/**/build/outputs/apk/debug/*.apk
+          if-no-files-found: error
+          retention-days: 7
