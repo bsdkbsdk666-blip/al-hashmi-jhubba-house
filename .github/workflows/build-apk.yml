@@ -28,12 +28,13 @@ jobs:
           gradle-version: '8.9'
 
       
-- name: Set up Android SDK
-  uses: android-actions/setup-android@v4
-  with:
-    accept-android-sdk-licenses: true
-    log-accepted-android-sdk-licenses: false
-    packages: platform-tools
+
+        - name: Set up Android SDK
+          uses: android-actions/setup-android@v4
+          with:
+            accept-android-sdk-licenses: true
+            packages: platform-tools
+
 
 
       - name: Extract project ZIP
